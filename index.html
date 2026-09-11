@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Розклад ФКСР 105 група</title>
+    
+    <!-- PWA налаштування -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Розклад 105">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
+
+    <style>
+        :root {
+            /* Темна тема за замовчуванням */
+            --bg: #121820;
+            --card-bg: #1e2630;
+            --primary-accent: #3498db;
+            --text-main: #e0e6ed;
+            --text-muted: #95a5a6;
+            --header-bg: linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%);
+            --header-text: #ffffff;
+            --header-subtext: #aeb6bf;
+            --room-bg: #1b3644;
+            --room-text: #5dade2;
+            --room-border: #28527a;
+            --badge-bg: #342810;
+            --badge-border: #8a6d3b;
+            --badge-text: #f39c12;
+            --border-color: #2c3e50;
+            --time-text: #2ecc71;
+            --lesson-title-color: #ffffff;
+            --btn-bg: #2c3e50;
+            --btn-text: #ffffff;
+            --modal-bg: #1e2630;
+            --input-bg: #121820;
+            --input-text: #ffffff;
+            --empty-bg: #161e27;
+            --empty-text: #5f6e7e;
+            --item-hover: #2a3545;
+        }
+
+        [data-theme="light"] {
+            /* Світла тема */
+            --bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --primary-accent: #2980b9;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --header-bg: linear-gradient(135deg, #3498db 0%, #1d6fa5 100%);
+            --header-text: #ffffff;
+            --header-subtext: #e0f2fe;
+            --room-bg: #ebf5fb;
+            --room-text: #1b4f72;
+            --room-border: #aed6f1;
+            --badge-bg: #fef9e7;
+            --badge-border: #f9e79f;
+            --badge-text: #b7950b;
+            --border-color: #e5e8e8;
+            --time-text: #27ae60;
+            --lesson-title-color: #1a252f;
+            --btn-bg: #ffffff;
+            --btn-text: #2c3e50;
+            --modal-bg: #ffffff;
+            --input-bg: #f4f6f9;
+            --input-text: #2c3e50;
+            --empty-bg: #f8f9fa;
+            --empty-text: #bdc3c7;
+            --item-hover: #eaeded;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 12px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .header {
+            text-align: center;
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 18px 15px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 21px;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            margin: 6px 0 0 0;
+            font-size: 13px;
+            color: var(--header-subtext);
+        }
+
+        .header-btn {
+            position: absolute;
+            top: 15px;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-toggle-btn {
+            right: 15px;
+        }
+
+        .subjects-btn {
+            left: 15px;
+        }
+
+        .day-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .day-title {
+            font-weight: bold;
+            font-size: 16px;
+            color: var(--primary-accent);
+            padding-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            border-bottom: 2px solid var(--border-color);
+            transition: border-bottom 0.3s ease;
+        }
+
+        .day-card.collapsed .day-title {
+            border-bottom: 2px solid transparent;
+            padding-bottom: 0;
+        }
+
+        .arrow {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+            color: var(--text-muted);
+        }
+
+        .day-card.collapsed .arrow {
+            transform: rotate(-90deg);
+        }
+
+        .card-content {
+            margin-top: 12px;
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.3s cubic-bezier(0, 1, 0, 1), opacity 0.3s ease, margin-top 0.3s ease;
+            opacity: 1;
+        }
+
+        .day-card.collapsed .card-content {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .lesson {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border-color);
+            position: relative;
+        }
+
+        .lesson:last-child {
+            border-bottom: none;
+        }
+
+        .lesson-num {
+            font-weight: bold;
+            background: var(--primary-accent);
+            color: #ffffff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .lesson.empty .lesson-num {
+            background: var(--empty-bg);
+            color: var(--empty-text);
+            box-shadow: none;
+            border: 1px solid var(--border-color);
+        }
+
+        .lesson-info {
+            flex-grow: 1;
+            font-size: 14px;
+            line-height: 1.45;
+            padding-right: 30px;
+        }
+
+        .lesson.empty .lesson-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .lesson-title {
+            font-weight: 600;
+            color: var(--lesson-title-color);
+        }
+
+        .lesson.empty .lesson-title {
+            color: var(--empty-text);
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .lesson-time {
+            font-size: 12px;
+            color: var(--time-text);
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .lesson.empty .lesson-time {
+            color: var(--empty-text);
+            font-weight: normal;
+        }
+
+        .teacher {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 3px;
+        }
+
+        .room {
+            color: var(--room-text);
+            font-weight: 600;
+            font-size: 12px;
+            background: var(--room-bg);
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border: 1px solid var(--room-border);
+        }
+
+        .note {
+            display: inline-block;
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border: 1px solid var(--badge-border);
+        }
+
+        .add-reminder-btn {
+            position: absolute;
+            top: 8px;
+            right: 0;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            opacity: 0.6;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .add-reminder-btn:hover {
+            opacity: 1;
+            transform: scale(1.15);
+        }
+
+        .reminder-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #e74c3c22;
+            color: #e74c3c;
+            border: 1px solid #e74c3c66;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        .delete-reminder-btn {
+            background: transparent;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            margin-left: 4px;
+        }
+
+        .bells-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .bells-table th, .bells-table td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        .bells-table th {
+            color: var(--primary-accent);
+            font-weight: bold;
+        }
+
+        .bells-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .notepad-textarea {
+            width: 100%;
+            height: 140px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.4;
+            resize: vertical;
+        }
+
+        .notepad-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .notepad-status {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Список предметів */
+        .subjects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .subject-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .subject-item:hover {
+            background: var(--item-hover);
+        }
+
+        .subject-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .subject-hw-badge {
+            font-size: 11px;
+            background: var(--primary-accent);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+
+        /* Модальні вікна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--modal-bg);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 14px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: var(--primary-accent);
+            font-size: 16px;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            height: 90px;
+            background: var(--input-bg);
+            color: var(--input-text);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            box-sizing: border-box;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .modal-btn-save {
+            background: var(--primary-accent);
+            color: #ffffff;
+        }
+
+        .modal-btn-cancel {
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .modal-btn-danger {
+            background: #e74c3c22;
+            color: #e74c3c;
+            border: 1px solid #e74c3c66;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <button class="header-btn subjects-btn" onclick="openSubjectsModal()">📚 Предмети</button>
+    <button class="header-btn theme-toggle-btn" onclick="toggleTheme()" id="themeBtn">☀️ Світла тема</button>
+    <h1>Розклад ФКСР (105 група)</h1>
+    <p>І семестр • Офлайн-режим</p>
+</div>
+
+<!-- Розклад дзвінків -->
+<div class="day-card">
+    <div class="day-title" onclick="toggleCard(this)">
+        <span>🔔 Розклад дзвінків</span>
+        <span class="arrow">▼</span>
+    </div>
+    <div class="card-content">
+        <table class="bells-table">
+            <thead>
+                <tr>
+                    <th>Пара</th>
+                    <th>Час проведення</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td><strong>1 пара</strong></td><td><span class="lesson-time">08:20 – 09:40</span></td></tr>
+                <tr><td><strong>2 пара</strong></td><td><span class="lesson-time">09:50 – 11:10</span></td></tr>
+                <tr><td><strong>3 пара</strong></td><td><span class="lesson-time">11:30 – 12:50</span></td></tr>
+                <tr><td><strong>4 пара</strong></td><td><span class="lesson-time">13:00 – 14:20</span></td></tr>
+                <tr><td><strong>5 пара</strong></td><td><span class="lesson-time">14:40 – 16:00</span></td></tr>
+                <tr><td><strong>6 пара</strong></td><td><span class="lesson-time">16:10 – 17:30</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="schedule"></div>
+
+<!-- Блокнот -->
+<div class="day-card" data-daycode="notepad">
+    <div class="day-title" onclick="toggleCard(this)">
+        <span>📝 Загальний Блокнот</span>
+        <span class="arrow">▼</span>
+    </div>
+    <div class="card-content">
+        <textarea id="globalNotepad" class="notepad-textarea" placeholder="Записуйте сюди ваші загальні нотатки..." oninput="autoSaveNotepad()"></textarea>
+        <div class="notepad-actions">
+            <span id="notepadStatus" class="notepad-status"></span>
+            <button class="modal-btn modal-btn-danger" onclick="clearNotepad()">Очистити</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно списку предметів -->
+<div class="modal" id="subjectsModal">
+    <div class="modal-content">
+        <h3>Список предметів</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-top:-8px;">Натисніть на предмет, щоб записати ДЗ</p>
+        <div id="subjectsContainer" class="subjects-list"></div>
+        <div class="modal-actions" style="margin-top: 15px;">
+            <button class="modal-btn modal-btn-cancel" onclick="closeSubjectsModal()">Закрити</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно запису ДЗ -->
+<div class="modal" id="hwModal">
+    <div class="modal-content">
+        <h3 id="hwSubjectTitle">Домашнє завдання</h3>
+        <textarea id="hwText" placeholder="Введіть домашнє завдання з предмета..."></textarea>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-cancel" onclick="closeHwModal()">Скасувати</button>
+            <button class="modal-btn modal-btn-save" onclick="saveHomework()">Зберегти</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно для додавання нагадування до пари -->
+<div class="modal" id="reminderModal">
+    <div class="modal-content">
+        <h3>Додати нагадування</h3>
+        <textarea id="reminderText" placeholder="Наприклад: Перенос у 14 ауд..."></textarea>
+        <div class="modal-actions">
+            <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Скасувати</button>
+            <button class="modal-btn modal-btn-save" onclick="saveReminder()">Зберегти</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Теми
+function toggleTheme() {
+    const body = document.body;
+    const themeBtn = document.getElementById('themeBtn');
+    if (body.getAttribute('data-theme') === 'light') {
+        body.removeAttribute('data-theme');
+        themeBtn.innerHTML = '☀️ Світла тема';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.setAttribute('data-theme', 'light');
+        themeBtn.innerHTML = '🌙 Темна тема';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+(function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.setAttribute('data-theme', 'light');
+        document.getElementById('themeBtn').innerHTML = '🌙 Темна тема';
+    }
+})();
+
+let collapsedDays = {};
+
+function toggleCard(headerElement) {
+    const card = headerElement.parentElement;
+    card.classList.toggle('collapsed');
+    const dayCode = card.getAttribute('data-daycode');
+    if (dayCode) {
+        collapsedDays[dayCode] = card.classList.contains('collapsed');
+    }
+}
+
+const subjectsList = [
+    "Гімнастика з методикою навчання",
+    "Іноземна мова (англійська)",
+    "Спортивні ігри з методикою навчання в умовах НУШ",
+    "Гігієна з основами екології",
+    "Анатомія з основами морфології",
+    "Основи національного спротиву",
+    "Вступ до спеціальності",
+    "Основи теорії здоров'я та ЗОЖ",
+    "Українська мова (за проф. спрямуванням)",
+    "Методика організації рухової активності дітей та учнівської молоді"
+];
+
+const times = {
+    1: "08:20–09:40",
+    2: "09:50–11:10",
+    3: "11:30–12:50",
+    4: "13:00–14:20",
+    5: "14:40–16:00",
+    6: "16:10–17:30"
+};
+
+const rawScheduleData = [
+    {
+        day: "Понеділок",
+        dayCode: "mon",
+        lessons: [
+            { num: 1, title: "Гімнастика з методикою навчання (пз)", teacher: "асист. Паньків І.М.", room: "зал гімнастики" },
+            { num: 2, title: "Іноземна мова (англійська) (пз)", teacher: "доц. Рубанець Т.В.", room: "ауд. 9" },
+            { num: 3, title: "Спортивні ігри з методикою навчання в умовах НУШ (пз)", teacher: "асист. Комарова Т.В.", room: "зал спорт. ігор / спорт. майданчик №1" },
+            { num: 4, title: "Гігієна з основами екології (лк)", teacher: "доц. Курнишев Ю.А.", room: "ауд. 11", note: "Через тиждень (тиждень є / тиждень немає)" }
+        ]
+    },
+    {
+        day: "Вівторок",
+        dayCode: "tue",
+        lessons: [
+            { num: 2, title: "Анатомія з основами морфології (лк)", teacher: "доц. Марценяк І.В.", room: "ауд. 7" },
+            { num: 3, title: "Гімнастика з методикою навчання (лк)", teacher: "доц. Гауряк О.Д.", room: "ауд. 7" },
+            { num: 4, title: "Основи національного спротиву (пз)", teacher: "підгрупа гр. № 2", room: "-", note: "З 01.10 (через тиждень)" },
+            { num: 5, title: "Основи національного спротиву (пз)", teacher: "підгрупа гр. № 3", room: "-", note: "З 01.10 (через тиждень)" }
+        ]
+    },
+    {
+        day: "Середа",
+        dayCode: "wed",
+        lessons: [
+            { num: 2, title: "Вступ до спеціальності (лк) / Основи теорії здоров'я та ЗОЖ (лк)", teacher: "доц. Васкан І.Г. / доц. Киселиця О.М.", room: "ауд. 7", note: "Чергуються по тижнях (чисельник / знаменник)" },
+            { num: 3, title: "Анатомія з основами морфології (лк)", teacher: "доц. Марценяк І.В.", room: "ауд. 9" },
+            { num: 4, title: "Українська мова (за проф. спрямуванням) (пз)", teacher: "асист. Вітрук Н.Л.", room: "ауд. 23" }
+        ]
+    },
+    {
+        day: "Четвер",
+        dayCode: "thu",
+        lessons: [
+            { num: 1, title: "Вступ до спеціальності (сз)", teacher: "доц. Дарійчук С.В.", room: "ауд. 12" },
+            { num: 2, title: "Основи теорії здоров'я та здорового способу життя (пз)", teacher: "доц. Киселиця О.М.", room: "ауд. 9" },
+            { num: 4, title: "Гігієна з основами екології (пз)", teacher: "доц. Курнишев Ю.А.", room: "ауд. 9" }
+        ]
+    },
+    {
+        day: "П'ятниця",
+        dayCode: "fri",
+        lessons: [
+            { num: 1, title: "Спортивні ігри з методикою навчання в умовах НУШ (лк)", teacher: "асист. Комарова Т.В.", room: "ауд. 7", note: "Через тиждень (тиждень є / тиждень немає)" },
+            { num: 2, title: "Методика організації рухової активності дітей та учнівської молоді", teacher: "викл. Медвідь А.М.", room: "ауд. 7 / зал спорт. ігор", note: "04.09, 11.09, 18.09 — (лк) ауд. 7 | з 25.09 — (пз) зал спорт. ігор" }
+        ]
+    }
+];
+
+let reminders = JSON.parse(localStorage.getItem('schedule_reminders') || '{}');
+let homeworks = JSON.parse(localStorage.getItem('schedule_homeworks') || '{}');
+let activeLessonId = null;
+let activeSubjectName = null;
+
+function renderSchedule() {
+    const container = document.getElementById('schedule');
+    container.innerHTML = '';
+
+    rawScheduleData.forEach(dayData => {
+        let dayCard = document.createElement('div');
+        const isCollapsed = !!collapsedDays[dayData.dayCode];
+        dayCard.className = `day-card ${isCollapsed ? 'collapsed' : ''}`;
+        dayCard.setAttribute('data-daycode', dayData.dayCode);
+        
+        let html = `
+            <div class="day-title" onclick="toggleCard(this)">
+                <span>${dayData.day}</span>
+                <span class="arrow">▼</span>
+            </div>
+            <div class="card-content">
+        `;
+        
+        for (let num = 1; num <= 5; num++) {
+            const lesson = dayData.lessons.find(l => l.num === num);
+            const lessonId = `${dayData.dayCode}_${num}`;
+            const timeStr = times[num] ? ` (${times[num]})` : '';
+            const reminderText = reminders[lessonId];
+
+            if (lesson) {
+                html += `
+                    <div class="lesson">
+                        <div class="lesson-num">${num}</div>
+                        <div class="lesson-info">
+                            <div class="lesson-title">${lesson.title} <span class="lesson-time">${timeStr}</span></div>
+                            <div class="teacher">${lesson.teacher}</div>
+                            ${lesson.room !== '-' ? `<span class="room">${lesson.room}</span>` : ''}
+                            ${lesson.note ? `<br><span class="note">⚠️ ${lesson.note}</span>` : ''}
+                            
+                            ${reminderText ? `
+                                <br>
+                                <span class="reminder-tag">
+                                    📌 ${reminderText}
+                                    <button class="delete-reminder-btn" onclick="deleteReminder('${lessonId}', event)" title="Видалити">✕</button>
+                                </span>
+                            ` : ''}
+                        </div>
+                        <button class="add-reminder-btn" onclick="openModal('${lessonId}', event)" title="Додати примітку">📌</button>
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="lesson empty">
+                        <div class="lesson-num">${num}</div>
+                        <div class="lesson-info">
+                            <div>
+                                <span class="lesson-title">Немає пари</span>
+                                <span class="lesson-time">${timeStr}</span>
+                            </div>
+                            ${reminderText ? `
+                                <br>
+                                <span class="reminder-tag">
+                                    📌 ${reminderText}
+                                    <button class="delete-reminder-btn" onclick="deleteReminder('${lessonId}', event)" title="Видалити">✕</button>
+                                </span>
+                            ` : ''}
+                        </div>
+                        <button class="add-reminder-btn" onclick="openModal('${lessonId}', event)" title="Додати примітку">📌</button>
+                    </div>
+                `;
+            }
+        }
+        
+        html += `</div>`;
+        dayCard.innerHTML = html;
+        container.appendChild(dayCard);
+    });
+}
+
+// Функції роботи з предметами та ДЗ
+function openSubjectsModal() {
+    renderSubjectsList();
+    document.getElementById('subjectsModal').classList.add('active');
+}
+
+function closeSubjectsModal() {
+    document.getElementById('subjectsModal').classList.remove('active');
+}
+
+function renderSubjectsList() {
+    const container = document.getElementById('subjectsContainer');
+    container.innerHTML = '';
+    
+    subjectsList.forEach(subject => {
+        const item = document.createElement('div');
+        item.className = 'subject-item';
+        item.onclick = () => openHwModal(subject);
+
+        const hasHw = !!homeworks[subject];
+        item.innerHTML = `
+            <span class="subject-name">${subject}</span>
+            ${hasHw ? `<span class="subject-hw-badge">Є ДЗ</span>` : ''}
+        `;
+        container.appendChild(item);
+    });
+}
+
+function openHwModal(subjectName) {
+    activeSubjectName = subjectName;
+    document.getElementById('hwSubjectTitle').innerText = subjectName;
+    document.getElementById('hwText').value = homeworks[subjectName] || '';
+    document.getElementById('hwModal').classList.add('active');
+}
+
+function closeHwModal() {
+    activeSubjectName = null;
+    document.getElementById('hwModal').classList.remove('active');
+}
+
+function saveHomework(event) {
+    if (event) event.preventDefault();
+    const text = document.getElementById('hwText').value.trim();
+    if (activeSubjectName) {
+        if (text) {
+            homeworks[activeSubjectName] = text;
+        } else {
+            delete homeworks[activeSubjectName];
+        }
+        localStorage.setItem('schedule_homeworks', JSON.stringify(homeworks));
+        renderSubjectsList();
+    }
+    closeHwModal();
+}
+
+// Загальний Блокнот
+let notepadTimeout = null;
+
+function initNotepad() {
+    const savedText = localStorage.getItem('schedule_notepad_text') || '';
+    document.getElementById('globalNotepad').value = savedText;
+}
+
+function autoSaveNotepad() {
+    const status = document.getElementById('notepadStatus');
+    status.innerText = 'Збереження...';
+    
+    clearTimeout(notepadTimeout);
+    notepadTimeout = setTimeout(() => {
+        const text = document.getElementById('globalNotepad').value;
+        localStorage.setItem('schedule_notepad_text', text);
+        status.innerText = 'Збережено';
+        setTimeout(() => { status.innerText = ''; }, 2000);
+    }, 500);
+}
+
+function clearNotepad() {
+    if (confirm('Ви дійсно бажаєте очистити блокнот?')) {
+        document.getElementById('globalNotepad').value = '';
+        localStorage.removeItem('schedule_notepad_text');
+        document.getElementById('notepadStatus').innerText = 'Очищено';
+        setTimeout(() => { document.getElementById('notepadStatus').innerText = ''; }, 2000);
+    }
+}
+
+// Модальне вікно для пар
+function openModal(lessonId, event) {
+    if (event) event.preventDefault();
+    activeLessonId = lessonId;
+    document.getElementById('reminderText').value = reminders[lessonId] || '';
+    document.getElementById('reminderModal').classList.add('active');
+}
+
+function closeModal(event) {
+    if (event) event.preventDefault();
+    activeLessonId = null;
+    document.getElementById('reminderModal').classList.remove('active');
+}
+
+function saveReminder(event) {
+    if (event) event.preventDefault();
+    const scrollPos = window.scrollY;
+    const text = document.getElementById('reminderText').value.trim();
+    if (activeLessonId) {
+        if (text) {
+            reminders[activeLessonId] = text;
+        } else {
+            delete reminders[activeLessonId];
+        }
+        localStorage.setItem('schedule_reminders', JSON.stringify(reminders));
+        renderSchedule();
+        window.scrollTo(0, scrollPos);
+    }
+    closeModal();
+}
+
+function deleteReminder(lessonId, event) {
+    if (event) event.preventDefault();
+    const scrollPos = window.scrollY;
+    delete reminders[lessonId];
+    localStorage.setItem('schedule_reminders', JSON.stringify(reminders));
+    renderSchedule();
+    window.scrollTo(0, scrollPos);
+}
+
+renderSchedule();
+initNotepad();
+</script>
+</body>
+</html>

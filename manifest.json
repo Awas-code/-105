@@ -1,0 +1,15 @@
+{
+  "name": "Розклад ФКСР 105",
+  "short_name": "Розклад 105",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#121820",
+  "theme_color": "#1e3a5f",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
